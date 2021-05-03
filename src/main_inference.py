@@ -9,6 +9,8 @@ import time
 import os
 
 import sys, glob
+
+import PIL
 import matplotlib.pyplot as plt
 import skimage
 import skimage.io
@@ -17,14 +19,15 @@ from skimage.transform import resize
 from skimage.util import img_as_ubyte
 from skimage.color import label2rgb
 
+
 sys.path.insert(1, '../src');
 sys.path.insert(1, '../../visualization')
 from watershed_infer import *
 from os.path import isfile, join
 from os import listdir
-from os.path import isfile, join
 
-from skimage.transform import resize
+
+
 from skimage.util import img_as_ubyte
 from skimage.color import label2rgb
 
@@ -95,22 +98,25 @@ def main():
     with open(config_file_path, 'r') as fin:
         print(fin.read())
 
-    # images = ['../visualization/GreyScale/HiTIF_Laurent_Technical/AUTO0496_J14_T0001F001L01A01Z01C01.tif',
-    #           '../visualization/GreyScale/BABE_Technical/image_0.tif',
-    #           '../visualization/GreyScale/HiTIF_Colorectal_Biological/AUTO0218_N07_T0001F004L01A01Z01C01.tif',
-    #           '../visualization/GreyScale/Manasi_Technical/Plate1_M21_T0001F003L01A01Z01C01.tif'
-    #         ]
+
 
     images = listdir(input_images)
 
-    img = np.zeros((len(images), 1040, 1392))
+    img = np.zeros((len(images), 1078, 1278))
 
     for i in range(len(img)):
         tic = 0
         toc = 0
         tic = time.perf_counter()
+
+        image = PIL.Image.open(input_images + "/" + images[i])
+        width, height = image.size
+        print("LLALALALALALALLALALALALALALALALALALALALLA")
+        print(width, height)
+
         # image_resized = img_as_ubyte(resize(np.array(Image.open(input_images + "/" + images[i]).convert("L")), (1078, 1278)))
-        image_resized = img_as_ubyte(resize(np.array(Image.open(input_images + "/" + images[i])), (1040, 1392)))
+
+        image_resized = img_as_ubyte(resize(np.array(Image.open(input_images + "/" + images[i])), (1078, 1278)))
         img[i, :, :] = image_resized
 
         binary = watershed_infer(img, gaussian_blur_model, distance_map_model, config_file_path)
@@ -119,7 +125,15 @@ def main():
 
         plt.rcParams['figure.figsize'] = [15, 15]
 
-        skimage.io.imsave(output_folder + "/" + images[i], binary[i].astype(np.uint16), 'tifffile', False, tile=(1024, 1024))
+        #skimage.io.imsave(output_folder + "/" + images[i], binary[i].astype(np.uint16), 'tifffile', False,
+        #                  tile=(1024, 1024))
+
+        output = skimage.transform.resize(binary[i], (height, width))
+
+        skimage.io.imsave(output_folder + "/" + images[i], output.astype(np.uint16), 'tifffile', False,
+                          tile=(1024, 1024))
+
+
 
         toc = time.perf_counter()
 
